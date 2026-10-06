@@ -63,9 +63,9 @@ it('keeps the compare action visible at every selection count', function () {
         'pageClass' => EditPost::class,
     ])
         ->assertTableBulkActionVisible('compare')
-        ->selectTableRecords([$versions[0]])
+        ->set('selectedTableRecords', [$versions[0]])
         ->assertTableBulkActionVisible('compare')
-        ->selectTableRecords([$versions[0], $versions[1]])
+        ->set('selectedTableRecords', [$versions[0], $versions[1]])
         ->assertTableBulkActionVisible('compare');
 });
 
@@ -97,4 +97,28 @@ it('excludes a field from future snapshots once managed in the panel', function 
     $post->update(['body' => 'Universe']);
 
     expect($post->latestVersion()->data)->not->toHaveKey('body');
+});
+
+it('shows the field diff in the view and compare modals', function () {
+    // Filament 3 puts modal content in ->infolist(), not ->schema(). If that
+    // wiring breaks, the modals open empty and the action tests above still pass.
+    $post = Post::create(['title' => 'v1']);
+    $post->update(['title' => 'v2']);
+    $post->update(['title' => 'v3']);
+
+    $versions = $post->versions()->orderBy('id')->pluck('id');
+
+    Livewire::test(VersionsRelationManager::class, [
+        'ownerRecord' => $post,
+        'pageClass' => EditPost::class,
+    ])
+        ->mountTableAction('viewDiff', $versions[1])
+        ->assertSee('v1 → v2');
+
+    Livewire::test(VersionsRelationManager::class, [
+        'ownerRecord' => $post,
+        'pageClass' => EditPost::class,
+    ])
+        ->mountTableBulkAction('compare', [$versions[0], $versions[2]])
+        ->assertSee('v1 → v3');
 });

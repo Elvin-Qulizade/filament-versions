@@ -6,12 +6,12 @@ use ElvinQulizade\Versions\Contracts\Versionable;
 use ElvinQulizade\Versions\Models\Version;
 use ElvinQulizade\Versions\Support\VersionDiffer;
 use ElvinQulizade\Versions\Support\VersionSettings;
-use Filament\Actions\Action;
-use Filament\Actions\BulkAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
@@ -22,7 +22,7 @@ class VersionsRelationManager extends RelationManager
 {
     protected static string $relationship = 'versions';
 
-    protected static string | \BackedEnum | null $icon = 'heroicon-o-clock';
+    protected static ?string $icon = 'heroicon-o-clock';
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
@@ -47,7 +47,7 @@ class VersionsRelationManager extends RelationManager
                     ->fillForm(fn (): array => [
                         'excluded_fields' => VersionSettings::excludedFieldsFor($this->getOwnerRecord()->getMorphClass()),
                     ])
-                    ->schema([
+                    ->form([
                         CheckboxList::make('excluded_fields')
                             ->hiddenLabel()
                             ->options(fn (): array => array_combine(
@@ -88,14 +88,14 @@ class VersionsRelationManager extends RelationManager
                     ->label(__('filament-versions::versions.columns.user'))
                     ->default(__('filament-versions::versions.user.system')),
             ])
-            ->recordActions([
+            ->actions([
                 Action::make('viewDiff')
                     ->label(__('filament-versions::versions.actions.view_diff'))
                     ->icon('heroicon-o-eye')
                     ->modalHeading(__('filament-versions::versions.diff.heading'))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel(__('filament-versions::versions.actions.close'))
-                    ->schema(fn (Version $record) => static::diffSchema($record)),
+                    ->infolist(fn (Version $record) => static::diffSchema($record)),
 
                 Action::make('restore')
                     ->label(__('filament-versions::versions.actions.restore'))
@@ -117,20 +117,20 @@ class VersionsRelationManager extends RelationManager
                     // the browser is showing, so the actual page URL has to
                     // come from the Referer header instead.
                     ->successRedirectUrl(fn (): ?string => request()->header('referer'))
-                    ->action(function (Version $record): void {
+                    ->successNotificationTitle(__('filament-versions::versions.restore.success'))
+                    // Filament 3 only notifies and redirects when a custom
+                    // action calls success() itself.
+                    ->action(function (Version $record, Action $action): void {
                         $versionable = $record->versionable;
 
                         if ($versionable instanceof Versionable) {
                             $versionable->restoreVersion($record);
                         }
 
-                        Notification::make()
-                            ->title(__('filament-versions::versions.restore.success'))
-                            ->success()
-                            ->send();
+                        $action->success();
                     }),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkAction::make('compare')
                     ->label(__('filament-versions::versions.actions.compare'))
                     ->icon('heroicon-o-arrows-right-left')
@@ -145,7 +145,7 @@ class VersionsRelationManager extends RelationManager
                     // so the checkboxes — and thus this action — could never
                     // be reached. Stay visible always; guard the count in the
                     // schema instead.
-                    ->schema(function (Collection $records): array {
+                    ->infolist(function (Collection $records): array {
                         if ($records->count() !== 2) {
                             return [
                                 TextEntry::make('needs_two')

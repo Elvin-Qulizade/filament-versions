@@ -7,7 +7,7 @@
 
 
 
-Adds WordPress-style version history to any Eloquent model used in a Filament v5 resource: every save is snapshotted, a "History" tab shows the timeline with a field-level diff, and any past version can be restored with one click.
+Adds WordPress-style version history to any Eloquent model used in a Filament v3 resource: every save is snapshotted, a "History" tab shows the timeline with a field-level diff, and any past version can be restored with one click.
 
 ## Installation
 
@@ -18,12 +18,12 @@ composer require elvin-qulizade/filament-versions
 ```
 
 > [!IMPORTANT]
-> If you have not set up a custom theme and are using Filament Panels follow the instructions in the [Filament Docs](https://filamentphp.com/docs/5.x/styling/overview#creating-a-custom-theme) first.
+> If you have not set up a custom theme and are using Filament Panels follow the instructions in the [Filament Docs](https://filamentphp.com/docs/3.x/panels/themes#creating-a-custom-theme) first.
 
-After setting up a custom theme add the plugin's views to your theme css file or your app's css file if using the standalone packages.
+After setting up a custom theme add the plugin's views to the `content` array of your theme's `tailwind.config.js`, or your app's if using the standalone packages.
 
-```css
-@source '../../../../vendor/elvin-qulizade/filament-versions/resources/**/*.blade.php';
+```js
+'./vendor/elvin-qulizade/filament-versions/resources/**/*.blade.php',
 ```
 
 You can publish and run the migrations with:
