@@ -7,7 +7,7 @@
 
 
 
-Adds WordPress-style version history to any Eloquent model used in a Filament v5 resource: every save is snapshotted, a "History" tab shows the timeline with a field-level diff, and any past version can be restored with one click.
+Adds WordPress-style version history to any Eloquent model used in a Filament v4 or v5 resource: every save is snapshotted, a "History" tab shows the timeline with a field-level diff, and any past version can be restored with one click.
 
 ## Installation
 
